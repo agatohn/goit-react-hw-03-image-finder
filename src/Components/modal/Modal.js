@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { createPortal } from "react-dom";
+import PropTypes from "prop-types";
 
 const modalRoot = document.querySelector("#modal-root");
 
@@ -14,8 +15,6 @@ export default class Modal extends Component {
 
   handleKeyDown = (e) => {
     if (e.code === "Escape") {
-      console.log("Нажали ESC, нужно закрыть модалку");
-
       this.props.onClose();
     }
   };
@@ -37,3 +36,8 @@ export default class Modal extends Component {
     );
   }
 }
+
+Modal.propTypes = {
+  url: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+};

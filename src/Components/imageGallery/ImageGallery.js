@@ -2,10 +2,13 @@ import { Component } from "react";
 import ImageGalleryItem from "./imageGalleryItem/ImageGalleryItem";
 import imgAPI from "../../Services/pixabay-api";
 import { toast } from "react-toastify";
+import Loader from "react-loader-spinner";
+import PropTypes from "prop-types";
 
 const Status = {
   IDLE: "idle",
   PENDING: "pending",
+  PENDINGMORE: "pendingMore",
   RESOLVED: "resolved",
   REJECTED: "rejected",
 };
@@ -23,25 +26,47 @@ export default class ImageGallery extends Component {
     const prevPage = prevProps.page;
     const nextPage = this.props.page;
 
-    if (prevQuery !== nextQuery || prevPage !== nextPage) {
+    if (prevQuery !== nextQuery) {
       this.setState({ status: Status.PENDING });
+      setTimeout(() => {
+        imgAPI
+          .fetchImg(nextQuery)
+          .then(({ hits }) => {
+            if (hits[0]) {
+              return this.setState({
+                imgs: [...hits],
+                status: Status.RESOLVED,
+              });
+            }
+            toast.error("Такой картинки не существует.");
+            this.setState({ status: Status.IDLE });
+          })
+          .catch((error) => this.setState({ error, status: Status.REJECTED }));
+      }, 1000);
+    }
+    if (prevPage !== nextPage && prevQuery === nextQuery) {
+      this.setState({ status: Status.PENDINGMORE });
       let prevPage = [];
       if (prevState.imgs) {
         prevPage = [...prevState.imgs];
       }
-      imgAPI
-        .fetchImg(nextQuery, nextPage)
-        .then(({ hits }) => {
-          if (hits[0]) {
+      setTimeout(() => {
+        imgAPI
+          .fetchImg(prevQuery, nextPage)
+          .then(({ hits }) => {
             return this.setState({
               imgs: [...prevPage, ...hits],
               status: Status.RESOLVED,
             });
-          }
-          toast.error("Такой картинки не существует.");
-          this.setState({ status: Status.IDLE });
-        })
-        .catch((error) => this.setState({ error, status: Status.REJECTED }));
+          })
+          .catch((error) => this.setState({ error, status: Status.REJECTED }))
+          .finally(() =>
+            window.scrollTo({
+              top: document.documentElement.scrollHeight,
+              behavior: "smooth",
+            })
+          );
+      }, 1000);
     }
   }
 
@@ -54,7 +79,18 @@ export default class ImageGallery extends Component {
     }
 
     if (status === "pending") {
-      return <div>Ожидаем ответ по запросу: {query}</div>;
+      return (
+        <div>
+          Ожидаем ответ по запросу: {query}
+          <Loader
+            type="ThreeDots"
+            color="#00BFFF"
+            height={20}
+            width={100}
+            timeout={1000}
+          />
+        </div>
+      );
     }
 
     if (status === "rejected") {
@@ -67,7 +103,8 @@ export default class ImageGallery extends Component {
           <ul className="ImageGallery">
             {imgs.map((img) => (
               <ImageGalleryItem
-                url={img.largeImageURL}
+                urlLarge={img.largeImageURL}
+                url={img.webformatURL}
                 alt={img.tags}
                 key={img.id}
                 onClick={onOpen}
@@ -84,5 +121,37 @@ export default class ImageGallery extends Component {
         </>
       );
     }
+    if (status === "pendingMore") {
+      return (
+        <>
+          <ul className="ImageGallery">
+            {imgs.map((img) => (
+              <ImageGalleryItem
+                url={img.webformatURL}
+                alt={img.tags}
+                key={img.id}
+                onClick={onOpen}
+              />
+            ))}
+          </ul>
+          <button className="Button" type="button">
+            <Loader
+              type="ThreeDots"
+              color="#00BFFF"
+              height={20}
+              width={100}
+              timeout={1000}
+            />
+          </button>
+        </>
+      );
+    }
   }
 }
+
+ImageGallery.propTypes = {
+  query: PropTypes.string.isRequired,
+  page: PropTypes.string.isRequired,
+  onOpen: PropTypes.func.isRequired,
+  handlePageIncr: PropTypes.func.isRequired,
+};

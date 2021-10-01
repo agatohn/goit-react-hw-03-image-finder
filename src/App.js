@@ -16,7 +16,7 @@ export default class App extends Component {
     this.setState({ query, page: "1" });
   };
   handlePageIncr = () => {
-    this.setState({ page: Number(this.state.page) + 1 });
+    this.setState({ page: (Number(this.state.page) + 1).toString() });
   };
 
   closeModal = () => {

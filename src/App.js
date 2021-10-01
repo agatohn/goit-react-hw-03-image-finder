@@ -13,7 +13,10 @@ export default class App extends Component {
   };
 
   handleFormSubmit = (query) => {
-    this.setState({ query });
+    this.setState({ query, page: "1" });
+  };
+  handlePageIncr = () => {
+    this.setState({ page: Number(this.state.page) + 1 });
   };
 
   closeModal = () => {
@@ -26,12 +29,17 @@ export default class App extends Component {
   //url needed
   render() {
     return (
-      <div style={{ maxWidth: 1170, margin: "0 auto", padding: 20 }}>
+      <div>
         <SearchForm onSubmit={this.handleFormSubmit} />
         {this.state.showModal && (
           <Modal url={this.state.urlModal} onClose={this.closeModal} />
         )}
-        <ImageGallery query={this.state.query} onOpen={this.handleImageClick} />
+        <ImageGallery
+          query={this.state.query}
+          page={this.state.page}
+          onOpen={this.handleImageClick}
+          handlePageIncr={this.handlePageIncr}
+        />
         <ToastContainer
           position="top-right"
           autoClose={3000}

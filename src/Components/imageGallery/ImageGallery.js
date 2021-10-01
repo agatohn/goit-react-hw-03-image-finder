@@ -17,18 +17,26 @@ export default class ImageGallery extends Component {
     status: Status.IDLE,
   };
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps, prevState) {
     const prevQuery = prevProps.query;
     const nextQuery = this.props.query;
+    const prevPage = prevProps.page;
+    const nextPage = this.props.page;
 
-    if (prevQuery !== nextQuery) {
+    if (prevQuery !== nextQuery || prevPage !== nextPage) {
       this.setState({ status: Status.PENDING });
-
+      let prevPage = [];
+      if (prevState.imgs) {
+        prevPage = [...prevState.imgs];
+      }
       imgAPI
-        .fetchImg(nextQuery)
+        .fetchImg(nextQuery, nextPage)
         .then(({ hits }) => {
           if (hits[0]) {
-            return this.setState({ imgs: hits, status: Status.RESOLVED });
+            return this.setState({
+              imgs: [...prevPage, ...hits],
+              status: Status.RESOLVED,
+            });
           }
           toast.error("Такой картинки не существует.");
           this.setState({ status: Status.IDLE });
@@ -39,7 +47,7 @@ export default class ImageGallery extends Component {
 
   render() {
     const { imgs, error, status } = this.state;
-    const { query } = this.props;
+    const { query, handlePageIncr, onOpen } = this.props;
 
     if (status === "idle") {
       return <div>Введите поисковый запрос.</div>;
@@ -55,16 +63,25 @@ export default class ImageGallery extends Component {
 
     if (status === "resolved") {
       return (
-        <ul className="ImageGallery">
-          {imgs.map((img) => (
-            <ImageGalleryItem
-              url={img.largeImageURL}
-              alt={img.tags}
-              key={img.id}
-              onClick={this.props.onOpen}
-            />
-          ))}
-        </ul>
+        <>
+          <ul className="ImageGallery">
+            {imgs.map((img) => (
+              <ImageGalleryItem
+                url={img.largeImageURL}
+                alt={img.tags}
+                key={img.id}
+                onClick={onOpen}
+              />
+            ))}
+          </ul>
+          <button
+            onClick={() => handlePageIncr()}
+            className="Button"
+            type="button"
+          >
+            Load More!
+          </button>
+        </>
       );
     }
   }

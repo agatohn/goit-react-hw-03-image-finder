@@ -111,11 +111,7 @@ export default class ImageGallery extends Component {
               />
             ))}
           </ul>
-          <button
-            onClick={() => handlePageIncr()}
-            className="Button"
-            type="button"
-          >
+          <button onClick={handlePageIncr} className="Button" type="button">
             Load More!
           </button>
         </>

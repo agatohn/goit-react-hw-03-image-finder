@@ -28,21 +28,20 @@ export default class ImageGallery extends Component {
 
     if (prevQuery !== nextQuery) {
       this.setState({ status: Status.PENDING });
-      setTimeout(() => {
-        imgAPI
-          .fetchImg(nextQuery)
-          .then(({ hits }) => {
-            if (hits[0]) {
-              return this.setState({
-                imgs: [...hits],
-                status: Status.RESOLVED,
-              });
-            }
-            toast.error("Такой картинки не существует.");
-            this.setState({ status: Status.IDLE });
-          })
-          .catch((error) => this.setState({ error, status: Status.REJECTED }));
-      }, 1000);
+
+      imgAPI
+        .fetchImg(nextQuery)
+        .then(({ hits }) => {
+          if (hits[0]) {
+            return this.setState({
+              imgs: [...hits],
+              status: Status.RESOLVED,
+            });
+          }
+          toast.error("Такой картинки не существует.");
+          this.setState({ status: Status.IDLE });
+        })
+        .catch((error) => this.setState({ error, status: Status.REJECTED }));
     }
     if (prevPage !== nextPage && prevQuery === nextQuery) {
       this.setState({ status: Status.PENDINGMORE });
@@ -50,23 +49,22 @@ export default class ImageGallery extends Component {
       if (prevState.imgs) {
         prevPage = [...prevState.imgs];
       }
-      setTimeout(() => {
-        imgAPI
-          .fetchImg(prevQuery, nextPage)
-          .then(({ hits }) => {
-            return this.setState({
-              imgs: [...prevPage, ...hits],
-              status: Status.RESOLVED,
-            });
+
+      imgAPI
+        .fetchImg(prevQuery, nextPage)
+        .then(({ hits }) => {
+          return this.setState({
+            imgs: [...prevPage, ...hits],
+            status: Status.RESOLVED,
+          });
+        })
+        .catch((error) => this.setState({ error, status: Status.REJECTED }))
+        .finally(() =>
+          window.scrollTo({
+            top: document.documentElement.scrollHeight,
+            behavior: "smooth",
           })
-          .catch((error) => this.setState({ error, status: Status.REJECTED }))
-          .finally(() =>
-            window.scrollTo({
-              top: document.documentElement.scrollHeight,
-              behavior: "smooth",
-            })
-          );
-      }, 1000);
+        );
     }
   }
 
@@ -105,7 +103,7 @@ export default class ImageGallery extends Component {
               <ImageGalleryItem
                 urlLarge={img.largeImageURL}
                 url={img.webformatURL}
-                alt={img.tags}
+                alt={img.tags + img.tags}
                 key={img.id}
                 onClick={onOpen}
               />
@@ -125,7 +123,7 @@ export default class ImageGallery extends Component {
               <ImageGalleryItem
                 url={img.webformatURL}
                 alt={img.tags}
-                key={img.id}
+                key={img.id + img.tags}
                 onClick={onOpen}
               />
             ))}
@@ -147,7 +145,7 @@ export default class ImageGallery extends Component {
 
 ImageGallery.propTypes = {
   query: PropTypes.string.isRequired,
-  page: PropTypes.string.isRequired,
+  page: PropTypes.number.isRequired,
   onOpen: PropTypes.func.isRequired,
   handlePageIncr: PropTypes.func.isRequired,
 };

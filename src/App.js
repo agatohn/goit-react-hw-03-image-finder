@@ -26,6 +26,7 @@ export default class App extends Component {
   handleImageClick = (url) => {
     this.setState({ urlModal: url, showModal: true });
   };
+  
   //url needed
   render() {
     return (
@@ -39,7 +40,7 @@ export default class App extends Component {
           page={this.state.page}
           onOpen={this.handleImageClick}
           handlePageIncr={this.handlePageIncr}
-        />
+        />        
         <ToastContainer
           position="top-right"
           autoClose={3000}
